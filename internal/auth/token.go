@@ -1,13 +1,17 @@
 package auth
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/db/model"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/errors"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/xerrors"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"time"
 )
 
+// GenerateToken генерирует новый токен для пользователя.
 func (a *Auth) GenerateToken(profile *model.Profile) (string, error) {
 	timeNow := time.Now()
 
@@ -29,6 +33,8 @@ func (a *Auth) GenerateToken(profile *model.Profile) (string, error) {
 	return tokenStr, nil
 }
 
+// ParseToken проверяет валидность токена. Если токен валиден, возвращает Claims.
+// Если токен не валиден, вернется ошибка xerrors.ErrForbidden.
 func (a *Auth) ParseToken(tokenStr string) (*Claims, error) {
 	claims := &Claims{}
 
@@ -39,17 +45,52 @@ func (a *Auth) ParseToken(tokenStr string) (*Claims, error) {
 		return a.publicKey, nil
 	})
 	if err != nil {
-		return nil, errors.ErrForbidden
+		return nil, xerrors.ErrForbidden
 	}
 	return claims, nil
 }
 
-func (a *Auth) GenerateRefresh() {
-	//сгенерировать рефреш, положить его в редис (с временем протухания), отдать
-	//если у юзера уже есть рефреш, заменить
+// GenerateRefresh генерирует новый рефреш токен для пользователя.
+func (a *Auth) GenerateRefresh(ctx context.Context, profile *model.Profile) (*Refresh, error) {
+	timeNow := time.Now()
+
+	refreshDB := &model.Refresh{
+		Username:  profile.Username,
+		RefToken:  uuid.NewString(),
+		IssuedAt:  timeNow.Unix(),
+		ExpiresAt: timeNow.Add(a.refreshTokenTime).Unix(),
+	}
+
+	err := a.db.CreateRefresh(ctx, refreshDB, a.refreshTokenTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create refresh token to db: %w", err)
+	}
+
+	refresh := new(Refresh)
+	refresh.fillFromDB(refreshDB)
+
+	return refresh, nil
 }
 
-func (a *Auth) CheckRefresh() bool {
-	//проверить есть ли рефреш в редисе
-	return true
+// CheckRefresh проверяет, валиден ли рефреш токен пользователя.
+func (a *Auth) CheckRefresh(ctx context.Context, refresh *Refresh) (bool, error) {
+	refreshDB, err := a.db.GetRefresh(ctx, refresh.Username)
+	if err != nil {
+		if errors.Is(err, xerrors.ErrMissingFromDB) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get refresh token from db: %w", err)
+	}
+
+	timeNow := time.Now()
+	timeExp := time.Unix(refreshDB.ExpiresAt, 0)
+	if timeExp.Before(timeNow) {
+		return false, nil
+	}
+
+	if refreshDB.RefToken != refresh.RefToken {
+		return false, nil
+	}
+
+	return true, nil
 }

@@ -1,15 +1,19 @@
 package auth
 
 import (
+	"context"
 	"crypto/rsa"
 	"fmt"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/config"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/db/model"
 	"github.com/dgrijalva/jwt-go"
 	"os"
 	"time"
 )
 
 type RefreshStorage interface {
+	CreateRefresh(ctx context.Context, refresh *model.Refresh, expiration time.Duration) error
+	GetRefresh(ctx context.Context, username string) (*model.Refresh, error)
 }
 
 type Auth struct {
