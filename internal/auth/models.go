@@ -3,12 +3,19 @@ package auth
 import (
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/db/model"
 	"github.com/dgrijalva/jwt-go"
+	"time"
 )
 
 type Claims struct {
 	Username  string `json:"username"`
 	IsCreator bool   `json:"is_creator"`
 	jwt.StandardClaims
+}
+
+type Token struct {
+	Username    string
+	ExpTime     time.Time
+	AccessToken string
 }
 
 type Refresh struct {

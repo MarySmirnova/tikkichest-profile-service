@@ -12,8 +12,9 @@ import (
 )
 
 // GenerateToken генерирует новый токен для пользователя.
-func (a *Auth) GenerateToken(profile *model.Profile) (string, error) {
+func (a *Auth) GenerateToken(profile *model.Profile) (*Token, error) {
 	timeNow := time.Now()
+	timeExp := timeNow.Add(a.accessTokenTime)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS384,
 		&Claims{
@@ -22,15 +23,19 @@ func (a *Auth) GenerateToken(profile *model.Profile) (string, error) {
 			StandardClaims: jwt.StandardClaims{
 				Issuer:    a.issuer,
 				IssuedAt:  timeNow.Unix(),
-				ExpiresAt: timeNow.Add(a.accessTokenTime).Unix(),
+				ExpiresAt: timeExp.Unix(),
 			}})
 
 	tokenStr, err := token.SignedString(a.privateKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign token, %w", err)
+		return nil, fmt.Errorf("failed to sign token, %w", err)
 	}
 
-	return tokenStr, nil
+	return &Token{
+		Username:    profile.Username,
+		ExpTime:     timeExp,
+		AccessToken: tokenStr,
+	}, nil
 }
 
 // ParseToken проверяет валидность токена. Если токен валиден, возвращает Claims.

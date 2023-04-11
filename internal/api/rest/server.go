@@ -2,7 +2,9 @@ package rest
 
 import (
 	"context"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/auth"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/config"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/db/model"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/uptrace/bunrouter"
 	"log"
@@ -10,17 +12,20 @@ import (
 )
 
 type Storage interface {
+	GetProfile(username string) (*model.Profile, error)
 }
 
 type Server struct {
 	db         Storage
+	auth       *auth.Auth
 	httpServer *http.Server
 	notify     chan error
 }
 
-func NewServer(cfg config.Server, db Storage) *Server {
+func NewServer(cfg config.Server, db Storage, auth *auth.Auth) *Server {
 	s := &Server{
 		db:     db,
+		auth:   auth,
 		notify: make(chan error, 1),
 	}
 
