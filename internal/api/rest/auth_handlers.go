@@ -106,7 +106,26 @@ func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) (interfa
 	}, nil
 }
 
+// AuthorizeHandler
+// @Summary Authorize request
+// @Tags Authorize
+// @Description token must be in the Authorize header.
+// @Description If the token is invalid, return 403.
+// @Description If the token is ok, return profile info for claims: username and is_creator.
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} response.Claims
+// @Router /auth [get]
 func (s *Server) AuthorizeHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	token := bearerAuthHeader(r.Header.Get(authHeader))
 
-	return nil, nil
+	claims, err := s.auth.ParseToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Claims{
+		Username:  claims.Username,
+		IsCreator: claims.IsCreator,
+	}, nil
 }
