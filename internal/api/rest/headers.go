@@ -2,7 +2,11 @@ package rest
 
 import "strings"
 
-const authHeader = "Authorization"
+const (
+	authHeader     = "Authorization"
+	usernameHeader = "X-Username"
+	creatorHeader  = "X-Is-Creator"
+)
 
 // bearerAuthHeader trims the "Bearer" prefix and returns the token.
 // If there is no "Bearer" prefix, it will return an empty string.

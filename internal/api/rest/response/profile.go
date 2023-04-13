@@ -17,7 +17,7 @@ type ProfileShortDetailed struct {
 	IsCreator bool   `json:"is_creator"`
 }
 
-type ProfileList struct {
+type ProfilePage struct {
 	Profiles []ProfileShortDetailed `json:"profiles"`
 	Page     Page                   `json:"page"`
 }

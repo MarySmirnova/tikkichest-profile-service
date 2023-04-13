@@ -55,6 +55,8 @@ func (s *Server) errorProcessingWrap(handler func(http.ResponseWriter, *http.Req
 				err = xerrors.NewErrHTTP(err, http.StatusForbidden)
 			case errors.Is(err, xerrors.ErrInvalidReqBody):
 				err = xerrors.NewErrHTTP(err, http.StatusBadRequest)
+			case errors.Is(err, xerrors.ErrInvalidInputData):
+				err = xerrors.NewErrHTTP(err, http.StatusBadRequest)
 			default:
 				err = xerrors.NewErrHTTP(err, http.StatusInternalServerError)
 			}

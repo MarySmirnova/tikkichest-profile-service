@@ -8,6 +8,7 @@ import (
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/auth"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/xerrors"
 	"net/http"
+	"strconv"
 )
 
 // LoginHandler
@@ -20,6 +21,8 @@ import (
 // @Success 200 {object} response.Token
 // @Router /login [post]
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+
 	var login request.Login
 	if err := json.NewDecoder(r.Body).Decode(&login); err != nil {
 		return nil, xerrors.ErrInvalidReqBody
@@ -62,6 +65,8 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) (interface
 // @Success 200 {object} response.Token
 // @Router /refresh [post]
 func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+
 	var ref request.Refresh
 	if err := json.NewDecoder(r.Body).Decode(&ref); err != nil {
 		return nil, xerrors.ErrInvalidReqBody
@@ -109,13 +114,13 @@ func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) (interfa
 // AuthorizeHandler
 // @Summary Authorize request
 // @Tags Authorize
-// @Description token must be in the Authorize header.
+// @Description Token must be in the Authorize header.
 // @Description If the token is invalid, return 403.
-// @Description If the token is ok, return profile info for claims: username and is_creator.
+// @Description If the token is ok, return profile info for claims in the custom headers: X-Username and X-Is-Creator.
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} response.Claims
-// @Router /auth [get]
+// @Success 204
+// @Router /auth [head]
 func (s *Server) AuthorizeHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	token := bearerAuthHeader(r.Header.Get(authHeader))
 
@@ -124,8 +129,8 @@ func (s *Server) AuthorizeHandler(w http.ResponseWriter, r *http.Request) (inter
 		return nil, err
 	}
 
-	return response.Claims{
-		Username:  claims.Username,
-		IsCreator: claims.IsCreator,
-	}, nil
+	w.Header().Set(usernameHeader, claims.Username)
+	w.Header().Set(creatorHeader, strconv.FormatBool(claims.IsCreator))
+
+	return nil, nil
 }
