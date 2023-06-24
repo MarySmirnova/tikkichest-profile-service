@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/auth"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/config"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/db/model"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/model"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/uptrace/bunrouter"
 	"log"

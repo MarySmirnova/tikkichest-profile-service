@@ -3,7 +3,7 @@ package rest
 import (
 	"fmt"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/api/rest/response"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/xerrors"
+	. "github.com/MarySmirnova/tikkichest-profile-service/internal/errors"
 	"github.com/uptrace/bunrouter"
 	"net/http"
 )
@@ -23,7 +23,7 @@ func (s *Server) GetProfileHandler(w http.ResponseWriter, r *http.Request) (inte
 	params := bunrouter.ParamsFromContext(r.Context())
 	username, ok := params.Get("username")
 	if !ok {
-		return nil, fmt.Errorf("wrong username: %w", xerrors.ErrInvalidInputData)
+		return nil, fmt.Errorf("wrong username: %w", ErrInvalidInputData)
 	}
 
 	profile, err := s.db.GetProfile(username)

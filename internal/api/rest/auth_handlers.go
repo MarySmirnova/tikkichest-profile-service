@@ -6,7 +6,7 @@ import (
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/api/rest/request"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/api/rest/response"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/auth"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/xerrors"
+	. "github.com/MarySmirnova/tikkichest-profile-service/internal/errors"
 	"net/http"
 	"strconv"
 )
@@ -25,11 +25,11 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) (interface
 
 	var login request.Login
 	if err := json.NewDecoder(r.Body).Decode(&login); err != nil {
-		return nil, xerrors.ErrInvalidReqBody
+		return nil, ErrInvalidReqBody
 	}
 
 	if err := login.Validate(); err != nil {
-		return nil, xerrors.NewErrHTTP(err, http.StatusBadRequest)
+		return nil, NewErrHTTP(err, http.StatusBadRequest)
 	}
 
 	profile, err := s.db.GetProfile(login.Username)
@@ -69,11 +69,11 @@ func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) (interfa
 
 	var ref request.Refresh
 	if err := json.NewDecoder(r.Body).Decode(&ref); err != nil {
-		return nil, xerrors.ErrInvalidReqBody
+		return nil, ErrInvalidReqBody
 	}
 
 	if err := ref.Validate(); err != nil {
-		return nil, xerrors.NewErrHTTP(err, http.StatusBadRequest)
+		return nil, NewErrHTTP(err, http.StatusBadRequest)
 	}
 
 	profile, err := s.db.GetProfile(ref.Username)
@@ -90,7 +90,7 @@ func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) (interfa
 	}
 
 	if !refIsValid {
-		return nil, xerrors.ErrForbidden
+		return nil, ErrForbidden
 	}
 
 	token, err := s.auth.GenerateToken(profile)

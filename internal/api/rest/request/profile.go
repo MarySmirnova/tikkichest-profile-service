@@ -2,7 +2,7 @@ package request
 
 import (
 	"fmt"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/db/model"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/model"
 	"github.com/MarySmirnova/tikkichest-profile-service/pkg/hashpass"
 	"time"
 )

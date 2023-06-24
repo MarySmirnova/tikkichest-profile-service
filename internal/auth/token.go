@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/db/model"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/xerrors"
+	. "github.com/MarySmirnova/tikkichest-profile-service/internal/errors"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"time"
@@ -39,7 +39,7 @@ func (a *Auth) GenerateToken(profile *model.Profile) (*Token, error) {
 }
 
 // ParseToken проверяет валидность токена. Если токен валиден, возвращает Claims.
-// Если токен не валиден, вернется ошибка xerrors.ErrForbidden.
+// Если токен не валиден, вернется ошибка errors.ErrForbidden.
 func (a *Auth) ParseToken(tokenStr string) (*Claims, error) {
 	claims := &Claims{}
 
@@ -50,7 +50,7 @@ func (a *Auth) ParseToken(tokenStr string) (*Claims, error) {
 		return a.publicKey, nil
 	})
 	if err != nil {
-		return nil, xerrors.ErrForbidden
+		return nil, ErrForbidden
 	}
 	return claims, nil
 }
@@ -81,7 +81,7 @@ func (a *Auth) GenerateRefresh(ctx context.Context, profile *model.Profile) (*Re
 func (a *Auth) CheckRefresh(ctx context.Context, refresh *Refresh) (bool, error) {
 	refreshDB, err := a.db.GetRefresh(ctx, refresh.Username)
 	if err != nil {
-		if errors.Is(err, xerrors.ErrMissingFromDB) {
+		if errors.Is(err, ErrMissingFromDB) {
 			return false, nil
 		}
 		return false, fmt.Errorf("failed to get refresh token from db: %w", err)

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/MarySmirnova/tikkichest-profile-service/internal/xerrors"
+	. "github.com/MarySmirnova/tikkichest-profile-service/internal/errors"
 	"github.com/uptrace/bunrouter"
 	"net/http"
 	"os"
@@ -48,17 +48,17 @@ func (s *Server) errorProcessingWrap(handler func(http.ResponseWriter, *http.Req
 		resp, err := handler(w, r)
 		var code int
 
-		if _, ok := err.(*xerrors.ErrHTTP); !ok {
+		if _, ok := err.(*ErrHTTP); !ok {
 			switch {
 			case err == nil:
-			case errors.Is(err, xerrors.ErrForbidden):
-				err = xerrors.NewErrHTTP(err, http.StatusForbidden)
-			case errors.Is(err, xerrors.ErrInvalidReqBody):
-				err = xerrors.NewErrHTTP(err, http.StatusBadRequest)
-			case errors.Is(err, xerrors.ErrInvalidInputData):
-				err = xerrors.NewErrHTTP(err, http.StatusBadRequest)
+			case errors.Is(err, ErrForbidden):
+				err = NewErrHTTP(err, http.StatusForbidden)
+			case errors.Is(err, ErrInvalidReqBody):
+				err = NewErrHTTP(err, http.StatusBadRequest)
+			case errors.Is(err, ErrInvalidInputData):
+				err = NewErrHTTP(err, http.StatusBadRequest)
 			default:
-				err = xerrors.NewErrHTTP(err, http.StatusInternalServerError)
+				err = NewErrHTTP(err, http.StatusInternalServerError)
 			}
 		}
 
@@ -69,7 +69,7 @@ func (s *Server) errorProcessingWrap(handler func(http.ResponseWriter, *http.Req
 			} else {
 				code = http.StatusOK
 			}
-		case *xerrors.ErrHTTP:
+		case *ErrHTTP:
 			code = e.Code
 			resp = e.Error()
 		default:
