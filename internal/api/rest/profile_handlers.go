@@ -26,20 +26,12 @@ func (s *Server) GetProfileHandler(w http.ResponseWriter, r *http.Request) (inte
 		return nil, fmt.Errorf("wrong username: %w", ErrInvalidInputData)
 	}
 
-	profile, err := s.db.GetProfile(username)
+	profile, err := s.db.GetProfile(r.Context(), username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user profile from DB: %w", err)
 	}
 
-	return response.Profile{
-		Username:  profile.Username,
-		Name:      profile.Name,
-		Email:     profile.Email,
-		Phone:     profile.Phone,
-		Country:   profile.Location.Country,
-		Town:      profile.Location.Town,
-		IsCreator: profile.IsCreator,
-	}, nil
+	return response.ProfileFromDBModel(profile), nil
 }
 
 // GetProfilePageHandler
@@ -55,8 +47,17 @@ func (s *Server) GetProfileHandler(w http.ResponseWriter, r *http.Request) (inte
 // @Success 200 {object} response.ProfilePage
 // @Router /profile [get]
 func (s *Server) GetProfilePageHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	p, err := s.pageInfo(r)
+	if err != nil {
+		return nil, fmt.Errorf("wrong page info: %w", err)
+	}
 
-	return nil, nil
+	profiles, nextFrom, err := s.db.PageOfProfiles(r.Context(), uint(p.limit), p.from)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get page of user profiles from DB: %w", err)
+	}
+
+	return response.ProfilePageFromDBModel(profiles, p.limit, nextFrom), nil
 }
 
 // CreateProfileHandler
