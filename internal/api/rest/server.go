@@ -15,6 +15,8 @@ type Storage interface {
 	GetProfile(ctx context.Context, username string) (*model.Profile, error)
 	PageOfProfiles(ctx context.Context, itemsPerPage uint, from string) ([]*model.Profile, string, error)
 	CreateProfile(ctx context.Context, profile *model.Profile) error
+	UpdateProfile(ctx context.Context, username string, profile *model.ProfileUpdate) error
+	DeleteProfile(ctx context.Context, username string) error
 }
 
 type Server struct {

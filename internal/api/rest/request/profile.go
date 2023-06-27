@@ -71,7 +71,15 @@ type ProfileUpdate struct {
 	Password *string `json:"password,omitempty"`
 }
 
-func (p *ProfileUpdate) toDBModel() (*model.ProfileUpdate, error) {
+func (p *ProfileUpdate) Validate() error {
+	err := NewValidError()
+
+	//TODO: add validate parameters
+
+	return err.Check()
+}
+
+func (p *ProfileUpdate) ToDBModel() (*model.ProfileUpdate, error) {
 	timeNow := time.Now().Unix()
 
 	profile := &model.ProfileUpdate{

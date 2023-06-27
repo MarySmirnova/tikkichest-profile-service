@@ -108,6 +108,31 @@ func (s *Server) CreateProfileHandler(w http.ResponseWriter, r *http.Request) (i
 // @Success 204
 // @Router /profile/{username} [patch]
 func (s *Server) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+
+	params := bunrouter.ParamsFromContext(r.Context())
+	username, ok := params.Get("username")
+	if !ok {
+		return nil, fmt.Errorf("wrong username: %w", ErrInvalidInputData)
+	}
+
+	var profileReq request.ProfileUpdate
+	if err := json.NewDecoder(r.Body).Decode(&profileReq); err != nil {
+		return nil, ErrInvalidReqBody
+	}
+
+	if err := profileReq.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid request data: %w", err)
+	}
+
+	dbProfile, err := profileReq.ToDBModel()
+	if err != nil {
+		return nil, fmt.Errorf("invalid request data: %w", err)
+	}
+
+	if err := s.db.UpdateProfile(r.Context(), username, dbProfile); err != nil {
+		return nil, fmt.Errorf("failed to update user profile in DB: %w", err)
+	}
 
 	return nil, nil
 }
@@ -122,6 +147,17 @@ func (s *Server) UpdateProfileHandler(w http.ResponseWriter, r *http.Request) (i
 // @Success 204
 // @Router /profile/{username} [delete]
 func (s *Server) DeleteProfileHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+
+	params := bunrouter.ParamsFromContext(r.Context())
+	username, ok := params.Get("username")
+	if !ok {
+		return nil, fmt.Errorf("wrong username: %w", ErrInvalidInputData)
+	}
+
+	if err := s.db.DeleteProfile(r.Context(), username); err != nil {
+		return nil, fmt.Errorf("failed to delete user profile in DB: %w", err)
+	}
 
 	return nil, nil
 }

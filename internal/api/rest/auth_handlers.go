@@ -32,7 +32,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) (interface
 		return nil, NewErrHTTP(err, http.StatusBadRequest)
 	}
 
-	profile, err := s.db.GetProfile(login.Username)
+	profile, err := s.db.GetProfile(r.Context(), login.Username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user profile from DB: %w", err)
 	}
@@ -76,7 +76,7 @@ func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) (interfa
 		return nil, NewErrHTTP(err, http.StatusBadRequest)
 	}
 
-	profile, err := s.db.GetProfile(ref.Username)
+	profile, err := s.db.GetProfile(r.Context(), ref.Username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user profile from DB: %w", err)
 	}
