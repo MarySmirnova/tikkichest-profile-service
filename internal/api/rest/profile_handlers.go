@@ -1,7 +1,9 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/MarySmirnova/tikkichest-profile-service/internal/api/rest/request"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/api/rest/response"
 	. "github.com/MarySmirnova/tikkichest-profile-service/internal/errors"
 	"github.com/uptrace/bunrouter"
@@ -47,6 +49,8 @@ func (s *Server) GetProfileHandler(w http.ResponseWriter, r *http.Request) (inte
 // @Success 200 {object} response.ProfilePage
 // @Router /profile [get]
 func (s *Server) GetProfilePageHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+
 	p, err := s.pageInfo(r)
 	if err != nil {
 		return nil, fmt.Errorf("wrong page info: %w", err)
@@ -70,7 +74,26 @@ func (s *Server) GetProfilePageHandler(w http.ResponseWriter, r *http.Request) (
 // @Success 204
 // @Router /profile [post]
 func (s *Server) CreateProfileHandler(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	var profileReq request.Profile
+	if err := json.NewDecoder(r.Body).Decode(&profileReq); err != nil {
+		return nil, ErrInvalidReqBody
+	}
+	defer r.Body.Close()
 
+	if err := profileReq.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid request data: %w", err)
+	}
+
+	dbProfile, err := profileReq.ToDBModel()
+	if err != nil {
+		return nil, fmt.Errorf("invalid request data: %w", err)
+	}
+
+	if err := s.db.CreateProfile(r.Context(), dbProfile); err != nil {
+		return nil, fmt.Errorf("failed to create user profile in DB: %w", err)
+	}
+
+	s.writeCodeHeader(w, http.StatusNoContent)
 	return nil, nil
 }
 

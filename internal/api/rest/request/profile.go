@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	. "github.com/MarySmirnova/tikkichest-profile-service/internal/errors"
 	"github.com/MarySmirnova/tikkichest-profile-service/internal/model"
 	"github.com/MarySmirnova/tikkichest-profile-service/pkg/hashpass"
 	"time"
@@ -18,7 +19,7 @@ type Profile struct {
 	IsCreator bool   `json:"is_creator"`
 }
 
-func (p *Profile) toDBModel() (*model.Profile, error) {
+func (p *Profile) ToDBModel() (*model.Profile, error) {
 	hashPassword, err := hashpass.CreatePasswordHash(p.Password)
 	if err != nil {
 		return nil, fmt.Errorf("create password hash error: %w", err)
@@ -40,6 +41,24 @@ func (p *Profile) toDBModel() (*model.Profile, error) {
 			Town:    p.Town,
 		},
 	}, nil
+}
+
+func (p *Profile) Validate() error {
+	err := NewValidError()
+
+	if p.Username == "" {
+		err.Add("username", "username must be filled")
+	}
+
+	if p.Name == "" {
+		err.Add("name", "name must be filled")
+	}
+
+	if p.Password == "" {
+		err.Add("password", "password must be filled")
+	}
+
+	return err.Check()
 }
 
 type ProfileUpdate struct {

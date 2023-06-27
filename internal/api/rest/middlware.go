@@ -59,6 +59,8 @@ func (s *Server) errorProcessingWrap(handler func(http.ResponseWriter, *http.Req
 				err = NewErrHTTP(err, http.StatusBadRequest)
 			case errors.Is(err, ErrInvalidParameterFormat):
 				err = NewErrHTTP(err, http.StatusBadRequest)
+			case errors.Is(err, ValidateError):
+				err = NewErrHTTP(err, http.StatusBadRequest)
 			default:
 				err = NewErrHTTP(err, http.StatusInternalServerError)
 			}

@@ -14,6 +14,7 @@ import (
 type Storage interface {
 	GetProfile(ctx context.Context, username string) (*model.Profile, error)
 	PageOfProfiles(ctx context.Context, itemsPerPage uint, from string) ([]*model.Profile, string, error)
+	CreateProfile(ctx context.Context, profile *model.Profile) error
 }
 
 type Server struct {
